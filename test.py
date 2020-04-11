@@ -6,18 +6,19 @@ from pprint import pprint
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
-
 options = Options()
 options.headless = True
 profile = webdriver.FirefoxProfile()
 profile.native_events_enabled = False
 
+wait_time = 10
+
 
 def load(url, connect):
     driver = webdriver.Firefox(options=options)
+    driver.implicitly_wait(wait_time)  # seconds
     driver.get(url)
-    driver.implicitly_wait(10)  # seconds
-    id = driver.find_element_by_css_selector("[data-widget=detailSKU]").text.split(": ")[1]
+    id = get_id(url)
     connect.cursor().execute("""SELECT * FROM `items` WHERE id=?""", [id])
     data = connect.cursor().fetchall()
     print(data)
@@ -63,14 +64,17 @@ def load(url, connect):
             salary_week_count = name.split()[0]
     print(
         "ID:" + id + " Name:" + item_name + " Price:" + item_price + " Score:" + item_score + " Sale:" + item_sale + " salary all count:" + salary_all_count + " salary today count:" + salary_today_count + " salary week count:" + salary_week_count + " Reviews:" + reviews)
-    return driver, ",".join(
+    return ",".join(
         [id, item_name, item_price, item_score, item_sale, salary_all_count, salary_today_count, salary_week_count,
          reviews])
 
 
 def parse(url, pack, connect):
     print("---MAIN---")
-    driver, main_data = load(url, connect)
+    driver = webdriver.Firefox(options=options)
+    driver.implicitly_wait(wait_time)  # seconds
+    driver.get(url)
+    main_data = load(url, connect)
 
     print("---RECOMMENDS---")
     recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
