@@ -1,3 +1,4 @@
+import sqlite3
 import time
 from pprint import pprint
 
@@ -6,11 +7,14 @@ from selenium.webdriver.firefox.options import Options
 
 from test import parse
 
+connect = sqlite3.connect("mydatabase.db")  # или :memory: чтобы сохранить в RAM
+
+
 options = Options()
 options.headless = True
 
 driver = webdriver.Firefox(options=options)
-for i in range(1, 20):
+for i in range(1, 21):
     if i == 2:
         i = 3
     driver.get("https://www.ozon.ru/category/televizory-15528/?page=" + str(i))
@@ -23,6 +27,7 @@ for i in range(1, 20):
     for j in range(0, len(elements)):
         element = elements[i]
         url = element.find_element_by_xpath("div/div/div[1]/a").get_attribute("href")
-        parse(url, str(i) + "-" + str(j))
+        print(url)
+        parse(url, str(i) + "-" + str(j), connect)
 
 driver.close()

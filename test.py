@@ -5,17 +5,21 @@ from pprint import pprint
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
+
 options = Options()
 options.headless = True
 profile = webdriver.FirefoxProfile()
 profile.native_events_enabled = False
 
 
-def load(url):
+def load(url, connect):
     driver = webdriver.Firefox(options=options)
     driver.get(url)
-    driver.implicitly_wait(20)  # seconds
+    driver.implicitly_wait(10)  # seconds
     id = driver.find_element_by_css_selector("[data-widget=detailSKU]").text.split(": ")[1]
+    connect.cursor().execute("""SELECT * FROM `items` WHERE id=?""", [id])
+    data = connect.cursor().fetchall()
+    print(data)
     item_name = driver.find_element_by_css_selector('[data-widget="webProductHeading"]>h1').text
     item_sale = driver.find_elements_by_xpath(
         '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/span[1]')
@@ -34,6 +38,7 @@ def load(url):
         pprint(name)
         pprint(name == "")
         while name == "":
+            print("salaryWhile")
             time.sleep(1)
             item_salary_name = driver.find_elements_by_xpath(
                 "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span")
@@ -60,18 +65,19 @@ def load(url):
     return driver, ",".join([id, item_name, item_price, item_score, item_sale, salary_all_count, salary_today_count, salary_week_count, reviews])
 
 
-def parse(url, pack):
+def parse(url, pack, connect):
     print("---MAIN---")
-    driver, main_data = load(url)
+    driver, main_data = load(url, connect)
 
     print("---RECOMMENDS---")
     recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
     recommends_data = []
     while len(recommends) == 0:
         time.sleep(1)
+        print("recWhile")
         recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
     for element in recommends:
-        local_driver, recommends_temp_data = load(element.get_property("href").split("?")[0])
+        local_driver, recommends_temp_data = load(element.get_property("href").split("?")[0], connect)
         recommends_data.append(recommends_temp_data)
         local_driver.close()
 
@@ -81,12 +87,13 @@ def parse(url, pack):
         "div>div>div>div>div>a")
     while len(sponsored) == 0:
         time.sleep(1)
+        print("sponsoredWhile")
         sponsored = driver.find_element_by_xpath(
             '/html/body/div[1]/div/div[1]/div[5]/div/div[2]/div/div[3]').find_elements_by_css_selector(
             "div>div>div>div>div>a")
     sponsored_data = []
     for element in sponsored:
-        local_driver, sponsored_temp_data = load(element.get_property("href").split("?")[0])
+        local_driver, sponsored_temp_data = load(element.get_property("href").split("?")[0], connect)
         sponsored_data.append(sponsored_temp_data)
         local_driver.close()
 
@@ -96,7 +103,7 @@ def parse(url, pack):
         "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
     also_bayed_data = []
     for element in also_bayed:
-        local_driver, also_bayed_data_temp = load(element.get_property("href").split("?")[0])
+        local_driver, also_bayed_data_temp = load(element.get_property("href").split("?")[0], connect)
         also_bayed_data.append(also_bayed_data_temp)
         local_driver.close()
 
