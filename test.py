@@ -7,6 +7,8 @@ from selenium.webdriver.firefox.options import Options
 
 options = Options()
 options.headless = True
+profile = webdriver.FirefoxProfile()
+profile.native_events_enabled = False
 
 
 def load(url):
