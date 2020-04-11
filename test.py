@@ -8,9 +8,9 @@ options.headless = True
 def load(url):
     driver = webdriver.Firefox(options=options)
     driver.get(url)
-    driver.implicitly_wait(20)  # seconds
+    driver.implicitly_wait(10)  # seconds
     driver.execute_script("window.scrollTo(0, 300);")
-    id = driver.find_element_by_xpath("/html/body/div[1]/div/div[1]/div[4]/div[1]/div/div[1]/span").text.split(": ")[1]
+    id = driver.find_element_by_css_selector("[data-widget=detailSKU]").text.split(": ")[1]
     driver.save_screenshot("screens/"+id+".png")
     item_name = driver.find_element_by_css_selector('[data-widget="webProductHeading"]>h1').text
     item_sale = driver.find_elements_by_xpath(
@@ -19,20 +19,21 @@ def load(url):
         item_sale = item_sale[0].text
     else:
         item_sale = "-"
-    item_score = driver.find_element_by_xpath(
-        '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[1]/div/div/div').get_attribute('title')
-    item_price = driver.find_element_by_xpath(
-        '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[2]/div/div[1]/div/div/div/div/div[1]/div/span[1]').text.replace(
+    item_score = driver.find_element_by_css_selector('[data-widget="reviewProductScore"] div[title]').get_attribute('title')
+    item_price = driver.find_element_by_css_selector('[data-widget="webSale"]>div>div>div>div>div>span').text.replace(
         ' ', '')
     item_salary_name = driver.find_elements_by_xpath(
         "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span")
-    reviews = driver.find_element_by_xpath(
-        "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[1]/div/div/a").text
-    reviews = reviews.split()[0]
+    reviews = driver.find_elements_by_css_selector('[data-widget="reviewProductScore"]>div>div>a')
+    if len(reviews) != 0:
+        reviews = reviews[0].text.split()[0]
+    else:
+        reviews = "0"
     salary_all_count = "-"
     salary_today_count = "-"
     if len(item_salary_name) != 0:
         name = item_salary_name[0].text
+        print(name)
         if "Купили более" in name:
             salary_all_count = name.split()[2]
         elif "за сегодня" in name and "покуп" in name:
@@ -45,6 +46,15 @@ def load(url):
 def parse(url):
     print("---MAIN---")
     driver = load(url)
+    driver.set_window_size(1366, 5000)  # because firefox not scroll to element
+    driver.save_screenshot("1366-5000.png")
+    also_bayed = driver.find_elements_by_css_selector(
+        "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
+    print("---ALSO BAYED---")
+    for element in also_bayed:
+        print(element.get_property("href").split("?")[0])
+        local_driver = load(element.get_property("href").split("?")[0])
+        local_driver.close()
     recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
     print("---RECOMMENDS---")
     for element in recommends:
@@ -56,14 +66,6 @@ def parse(url):
         "div>div>div>div>div>a")
     print("---SPONSORED---")
     for element in sponsored:
-        local_driver = load(element.get_property("href").split("?")[0])
-        local_driver.close()
-
-    driver.set_window_size(1366, 5000)  # because firefox not scroll to element
-    also_bayed = driver.find_elements_by_css_selector(
-        "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
-    print("---ALSO BAYED---")
-    for element in also_bayed:
         local_driver = load(element.get_property("href").split("?")[0])
         local_driver.close()
 
