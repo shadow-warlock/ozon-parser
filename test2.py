@@ -5,15 +5,16 @@ from pprint import pprint
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
-from test import parse
+from test import parse, get_id
 
-connect = sqlite3.connect("mydatabase.db")  # или :memory: чтобы сохранить в RAM
+connect = sqlite3.connect("database.sqlite")  # или :memory: чтобы сохранить в RAM
 
 
 options = Options()
 options.headless = True
 
 driver = webdriver.Firefox(options=options)
+flag = False
 for i in range(1, 21):
     if i == 2:
         i = 3
@@ -25,9 +26,14 @@ for i in range(1, 21):
     elements = driver.find_elements_by_css_selector(
         'html body div#__nuxt div.layout-page.desktop div.block-vertical div.container.c0x2 div.c1d div.c0u9 div.ce4.c0v0 div div.widget-search-result-container.ap div.ap0>div')
     for j in range(0, len(elements)):
-        element = elements[i]
+        element = elements[j]
         url = element.find_element_by_xpath("div/div/div[1]/a").get_attribute("href")
+        id = get_id(url)
+        # if id == 154925584:
+        #     flag = True
+        # if not flag:
+        #     continue
         print(url)
-        parse(url, str(i) + "-" + str(j), connect)
+        parse(url, "v1")
 
 driver.close()
