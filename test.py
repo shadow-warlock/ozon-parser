@@ -1,4 +1,5 @@
 import csv
+import re
 import time
 from pprint import pprint
 
@@ -62,7 +63,9 @@ def load(url, connect):
             salary_week_count = name.split()[0]
     print(
         "ID:" + id + " Name:" + item_name + " Price:" + item_price + " Score:" + item_score + " Sale:" + item_sale + " salary all count:" + salary_all_count + " salary today count:" + salary_today_count + " salary week count:" + salary_week_count + " Reviews:" + reviews)
-    return driver, ",".join([id, item_name, item_price, item_score, item_sale, salary_all_count, salary_today_count, salary_week_count, reviews])
+    return driver, ",".join(
+        [id, item_name, item_price, item_score, item_sale, salary_all_count, salary_today_count, salary_week_count,
+         reviews])
 
 
 def parse(url, pack, connect):
@@ -108,6 +111,10 @@ def parse(url, pack, connect):
         local_driver.close()
 
     driver.close()
-    with open('data/data'+pack+'.csv', 'w') as csvfile:
+    with open('data/data' + pack + '.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
         writer.writerow([main_data] + recommends_data + sponsored_data + also_bayed_data)
+
+
+def get_id(url):
+    return list(filter(lambda e: e != '', re.split(r'[\-/]', url)))[-1]
