@@ -5,12 +5,11 @@ options = Options()
 options.headless = True
 
 
-def load(url, wait=None):
+def load(url):
     print(url)
     driver = webdriver.Firefox(options=options)
     driver.get(url)
-    if wait is not None:
-        driver.implicitly_wait(wait)  # seconds
+    driver.implicitly_wait(10)  # seconds
     item_name = driver.find_element_by_css_selector('[data-widget="webProductHeading"]>h1').text
     item_sale = driver.find_element_by_xpath('/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/span[1]').text
     item_score = driver.find_element_by_xpath(
@@ -29,17 +28,17 @@ def load(url, wait=None):
     return driver
 
 
-driver = load("https://www.ozon.ru/context/detail/id/159397500/", 5)
+driver = load("https://www.ozon.ru/context/detail/id/159397500/")
 recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
 print("---RECOMMENDS---")
 for element in recommends:
-    local_driver = load(element.get_property("href"), 1)
+    local_driver = load(element.get_property("href").split("?")[0])
     local_driver.close()
 
 sponsored = driver.find_elements_by_css_selector('[data-widget="skuShelfGoods"]>div>div>div>div>div>a')
 print("---SPONSORED---")
 for element in sponsored:
-    local_driver = load(element.get_property("href"), 1)
+    local_driver = load(element.get_property("href").split("?")[0])
     local_driver.close()
 
 driver.close()
