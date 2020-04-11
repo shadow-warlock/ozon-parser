@@ -6,30 +6,26 @@ options.headless = True
 
 
 def load(url):
-    print(url)
+    id = url.split("/")[6]
     driver = webdriver.Firefox(options=options)
     driver.get(url)
     driver.implicitly_wait(10)  # seconds
     item_name = driver.find_element_by_css_selector('[data-widget="webProductHeading"]>h1').text
-    item_sale = driver.find_element_by_xpath(
-        '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/span[1]').text
+    item_sale = driver.find_element_by_xpath('/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/span[1]').text
     item_score = driver.find_element_by_xpath(
-        '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[1]/div/div/div').get_attribute(
-        'title')
+        '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[1]/div/div/div').get_attribute('title')
     item_price = driver.find_element_by_xpath(
         '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[2]/div/div[1]/div/div/div/div/div[1]/div/span[1]').text.replace(
         ' ', '')
-    item_100 = driver.find_elements_by_xpath(
-        "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span/span")
-    reviews = driver.find_element_by_xpath(
-        "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[1]/div/div/a").text
+    item_salary_count = driver.find_elements_by_xpath("/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span/span")
+    item_salary_count2 = driver.find_elements_by_xpath("/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span/strong")
+    reviews = driver.find_element_by_xpath("/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[1]/div/div/a").text
     reviews = reviews.split()[0]
-    if len(item_100) != 0:
-        item_100 = "True"
+    if len(item_salary_count) != 0:
+        item_salary_count = item_salary_count[0].text + " " + item_salary_count2[0].text
     else:
-        item_100 = "False"
-    print(
-        "Name:" + item_name + " Price:" + item_price + " Score:" + item_score + " Sale:" + item_sale + " 100+:" + item_100 + " Reviews:" + reviews)
+        item_salary_count = "-"
+    print("ID:" + id + " Name:" + item_name + " Price:" + item_price + " Score:" + item_score + " Sale:" + item_sale + " salary count:" + item_salary_count + " Reviews:" + reviews)
     return driver
 
 
