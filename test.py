@@ -11,6 +11,7 @@ options = Options()
 options.headless = True
 profile = webdriver.FirefoxProfile()
 profile.native_events_enabled = False
+drivers = []
 
 wait_time = 10
 
@@ -26,9 +27,13 @@ def load(url, type):
         return data[0][1] + "," + type
     # id = driver.find_element_by_css_selector("[data-widget=detailSKU]").text.split(": ")[1]
     driver = webdriver.Firefox(options=options)
+    drivers.append(driver)
     driver.implicitly_wait(wait_time)  # seconds
     driver.get(url)
-    item_name = driver.find_element_by_css_selector('[data-widget="webProductHeading"]>h1').text
+    item_name = driver.find_elements_by_css_selector('[data-widget="webProductHeading"]>h1')
+    if len(item_name) == 0:
+        return None
+    item_name = item_name[0].text
     item_sale = driver.find_elements_by_xpath(
         '/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[1]/div/div/div[1]/div[1]/span[1]')
     if len(item_sale) != 0:
@@ -58,6 +63,8 @@ def load(url, type):
             time.sleep(1)
             item_salary_name = driver.find_elements_by_xpath(
                 "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span")
+            if len(item_salary_name) == 0:
+                break
             name = item_salary_name[0].text
     reviews = driver.find_elements_by_css_selector('[data-widget="reviewProductScore"] a')
     if len(reviews) != 0:
@@ -78,6 +85,7 @@ def load(url, type):
     print(
         "ID:" + id + " Name:" + item_name + " Price:" + item_price + " Score:" + item_score + " Sale:" + item_sale + " salary all count:" + salary_all_count + " salary today count:" + salary_today_count + " salary week count:" + salary_week_count + " Reviews:" + reviews)
     driver.close()
+    drivers.remove(driver)
     data = ",".join(
         [id, item_name, item_price, item_score, item_sale, salary_all_count, salary_today_count, salary_week_count,
          reviews])
@@ -91,10 +99,13 @@ def load(url, type):
 def parse(url, pack):
     print("---MAIN---")
     driver = webdriver.Firefox(options=options)
+    drivers.append(driver)
     driver.set_window_size(1366, 9000)  # because firefox not scroll to element
     driver.implicitly_wait(wait_time)  # seconds
     driver.get(url)
     main_data = load(url, "main")
+    if main_data is None:
+        return
 
     print("---RECOMMENDS---")
     recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
@@ -137,6 +148,7 @@ def parse(url, pack):
         also_buyed_data.append(also_buyed_data_temp)
 
     driver.close()
+    drivers.remove(driver)
     with open('data/data' + pack + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
         writer.writerow([main_data] + recommends_data + sponsored_data + also_buyed_data)

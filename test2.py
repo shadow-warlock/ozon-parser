@@ -5,7 +5,7 @@ from pprint import pprint
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
-from test import parse, get_id
+from test import parse, get_id, drivers
 
 connect = sqlite3.connect("database.sqlite")  # или :memory: чтобы сохранить в RAM
 
@@ -20,6 +20,10 @@ def pre_parse(url, pack):
     try:
         parse(url, pack)
     except:
+        print("!!!ERROR!!!")
+        for driver in drivers:
+            driver.close()
+            drivers.remove(driver)
         pre_parse(url, pack)
 
 
@@ -37,8 +41,9 @@ for i in range(1, 21):
         element = elements[j]
         url = element.find_element_by_xpath("div/div/div[1]/a").get_attribute("href")
         id = get_id(url)
-        if id == "156591530":
+        if id == "171619249":
             flag = True
+            continue
         if not flag:
             print(id + " skip")
             continue
