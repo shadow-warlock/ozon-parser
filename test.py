@@ -15,14 +15,15 @@ profile.native_events_enabled = False
 wait_time = 10
 
 
-def load(url):
+def load(url, type):
     id = get_id(url)
+    print(id)
     connect = sqlite3.connect("database.sqlite")  # или :memory: чтобы сохранить в RAM
     data = connect.cursor().execute("""SELECT * FROM items WHERE id=?""", [id]).fetchall()
     connect.close()
     if len(data) > 0:
         print(id + " load from db")
-        return data[0][1]
+        return data[0][1] + "," + type
     # id = driver.find_element_by_css_selector("[data-widget=detailSKU]").text.split(": ")[1]
     driver = webdriver.Firefox(options=options)
     driver.implicitly_wait(wait_time)  # seconds
@@ -34,19 +35,21 @@ def load(url):
         item_sale = item_sale[0].text
     else:
         item_sale = "-"
-    item_score = driver.find_element_by_css_selector('[data-widget="reviewProductScore"] div[title]').get_attribute(
-        'title')
+    item_score = driver.find_elements_by_css_selector('[data-widget="reviewProductScore"] div[title]')
+    if len(item_score) == 0:
+        item_score = "-"
+    else:
+        item_score = item_score[0].get_attribute('title')
     item_price = driver.find_element_by_css_selector('[data-widget="webSale"]>div>div>div>div>div>span').text.replace(
         ' ', '')
     item_salary_name = driver.find_elements_by_xpath(
         "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span")
     if len(item_salary_name) != 0:
         name = item_salary_name[0].text
-        pprint(name)
         current_sleep = 0
         while name == "":
             current_sleep += 1
-            if current_sleep > 10:
+            if current_sleep > 3:
                 break
             print("nameWhile")
             time.sleep(1)
@@ -63,7 +66,6 @@ def load(url):
     salary_week_count = "-"
     if len(item_salary_name) != 0:
         name = item_salary_name[0].text
-        print(name)
         if "Купили более" in name:
             salary_all_count = name.split()[2]
         elif "за сегодня" in name and "покуп" in name:
@@ -80,15 +82,16 @@ def load(url):
     connect.cursor().execute("""INSERT INTO items VALUES (?,?)""", [id, data])
     connect.commit()
     connect.close()
-    return data
+    return data + "," + type
 
 
 def parse(url, pack):
     print("---MAIN---")
     driver = webdriver.Firefox(options=options)
+    driver.set_window_size(1366, 9000)  # because firefox not scroll to element
     driver.implicitly_wait(wait_time)  # seconds
     driver.get(url)
-    main_data = load(url)
+    main_data = load(url, "main")
 
     print("---RECOMMENDS---")
     recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
@@ -96,50 +99,77 @@ def parse(url, pack):
     current_sleep = 0
     while len(recommends) == 0:
         current_sleep += 1
-        if current_sleep > 10:
+        if current_sleep > 3:
             parse(url, pack)
-            break
+            return
         time.sleep(1)
         print("recWhile")
-        recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
-    for element in recommends:
-        recommends_temp_data = load(element.get_property("href").split("?")[0])
-        recommends_data.append(recommends_temp_data)
-
-    print("---SPONSORED---")
-    sponsored = driver.find_element_by_xpath(
-        '/html/body/div[1]/div/div[1]/div[5]/div/div[2]/div/div[3]').find_elements_by_css_selector(
-        "div>div>div>div>div>a")
+    sponsored = driver.find_elements_by_css_selector('[data-widget="skuShelfGoods"][title="Спонсорские товары"] a')
     current_sleep = 0
     while len(sponsored) == 0:
         current_sleep += 1
-        if current_sleep > 10:
+        if current_sleep > 3:
             parse(url, pack)
-            break
-        time.sleep(1)
+            return
+        driver.save_screenshot("sponsored_screen.png")
         print("sponsoredWhile")
+        time.sleep(1)
+        driver.execute_script("window.scrollTo(0, 600);")
         sponsored = driver.find_element_by_xpath(
             '/html/body/div[1]/div/div[1]/div[5]/div/div[2]/div/div[3]').find_elements_by_css_selector(
             "div>div>div>div>div>a")
     sponsored_data = []
     for element in sponsored:
-        sponsored_temp_data = load(element.get_property("href").split("?")[0])
+        sponsored_temp_data = load(element.get_property("href").split("?")[0], "sponsored")
         sponsored_data.append(sponsored_temp_data)
 
     print("---ALSO BAYED---")
-    driver.set_window_size(1366, 5000)  # because firefox not scroll to element
     also_bayed = driver.find_elements_by_css_selector(
         "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
     also_bayed_data = []
     for element in also_bayed:
-        also_bayed_data_temp = load(element.get_property("href").split("?")[0])
+        recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
+    for element in recommends:
+        recommends_temp_data = load(element.get_property("href").split("?")[0], "recommends")
+        recommends_data.append(recommends_temp_data)
+
+    print("---SPONSORED---")
+    sponsored = driver.find_elements_by_css_selector('[data-widget="skuShelfGoods"][title="Спонсорские товары"] a')
+    current_sleep = 0
+    while len(sponsored) == 0:
+        current_sleep += 1
+        if current_sleep > 3:
+            parse(url, pack)
+            return
+        driver.save_screenshot("sponsored_screen.png")
+        print("sponsoredWhile")
+        time.sleep(1)
+        driver.execute_script("window.scrollTo(0, 600);")
+        sponsored = driver.find_element_by_xpath(
+            '/html/body/div[1]/div/div[1]/div[5]/div/div[2]/div/div[3]').find_elements_by_css_selector(
+            "div>div>div>div>div>a")
+    sponsored_data = []
+    for element in sponsored:
+        sponsored_temp_data = load(element.get_property("href").split("?")[0], "sponsored")
+        sponsored_data.append(sponsored_temp_data)
+
+    print("---ALSO BAYED---")
+    also_bayed = driver.find_elements_by_css_selector(
+        "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
+    also_bayed_data = []
+    for element in also_bayed:
+        also_bayed_data_temp = load(element.get_property("href").split("?")[0], "also_bay")
         also_bayed_data.append(also_bayed_data_temp)
 
     driver.close()
     with open('data/data' + pack + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
         writer.writerow([main_data] + recommends_data + sponsored_data + also_bayed_data)
+        csvfile.close()
+
 
 
 def get_id(url):
     return list(filter(lambda e: e != '', re.split(r'[\-/]', url)))[-1]
+
+# parse("https://www.ozon.ru/context/detail/id/154925584/", "test")
