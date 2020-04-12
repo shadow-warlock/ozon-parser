@@ -40,8 +40,11 @@ def load(url, type):
         item_score = "-"
     else:
         item_score = item_score[0].get_attribute('title')
-    item_price = driver.find_element_by_css_selector('[data-widget="webSale"]>div>div>div>div>div>span').text.replace(
-        ' ', '')
+    item_price = driver.find_elements_by_css_selector('[data-widget="webSale"]>div>div>div>div>div>span')
+    if len(item_price) > 0:
+        item_price = item_price[0].text.replace(' ', '')
+    else:
+        item_price = "-"
     item_salary_name = driver.find_elements_by_xpath(
         "/html/body/div[1]/div/div[1]/div[4]/div[2]/div[2]/div/div[3]/div[1]/div[2]/div[3]/div/div/span")
     if len(item_salary_name) != 0:
@@ -95,7 +98,6 @@ def parse(url, pack):
 
     print("---RECOMMENDS---")
     recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
-    recommends_data = []
     current_sleep = 0
     while len(recommends) == 0:
         current_sleep += 1
@@ -104,31 +106,7 @@ def parse(url, pack):
             return
         time.sleep(1)
         print("recWhile")
-    sponsored = driver.find_elements_by_css_selector('[data-widget="skuShelfGoods"][title="Спонсорские товары"] a')
-    current_sleep = 0
-    while len(sponsored) == 0:
-        current_sleep += 1
-        if current_sleep > 3:
-            parse(url, pack)
-            return
-        driver.save_screenshot("sponsored_screen.png")
-        print("sponsoredWhile")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, 600);")
-        sponsored = driver.find_element_by_xpath(
-            '/html/body/div[1]/div/div[1]/div[5]/div/div[2]/div/div[3]').find_elements_by_css_selector(
-            "div>div>div>div>div>a")
-    sponsored_data = []
-    for element in sponsored:
-        sponsored_temp_data = load(element.get_property("href").split("?")[0], "sponsored")
-        sponsored_data.append(sponsored_temp_data)
-
-    print("---ALSO BAYED---")
-    also_bayed = driver.find_elements_by_css_selector(
-        "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
-    also_bayed_data = []
-    for element in also_bayed:
-        recommends = driver.find_elements_by_css_selector('[data-widget="skuShelfCompare"]>div>div>div>div>div>div>a')
+    recommends_data = []
     for element in recommends:
         recommends_temp_data = load(element.get_property("href").split("?")[0], "recommends")
         recommends_data.append(recommends_temp_data)
@@ -153,20 +131,19 @@ def parse(url, pack):
         sponsored_temp_data = load(element.get_property("href").split("?")[0], "sponsored")
         sponsored_data.append(sponsored_temp_data)
 
-    print("---ALSO BAYED---")
-    also_bayed = driver.find_elements_by_css_selector(
+    print("---ALSO-BUYED---")
+    also_buyed = driver.find_elements_by_css_selector(
         "#__nuxt>div>div.block-vertical>div:nth-child(6)>div>div:nth-child(2)>div>div:nth-child(4) a")
-    also_bayed_data = []
-    for element in also_bayed:
-        also_bayed_data_temp = load(element.get_property("href").split("?")[0], "also_bay")
-        also_bayed_data.append(also_bayed_data_temp)
+    also_buyed_data = []
+    for element in also_buyed:
+        also_buyed_data_temp = load(element.get_property("href").split("?")[0], "also_buy")
+        also_buyed_data.append(also_buyed_data_temp)
 
     driver.close()
     with open('data/data' + pack + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
-        writer.writerow([main_data] + recommends_data + sponsored_data + also_bayed_data)
+        writer.writerow([main_data] + recommends_data + sponsored_data + also_buyed_data)
         csvfile.close()
-
 
 
 def get_id(url):
