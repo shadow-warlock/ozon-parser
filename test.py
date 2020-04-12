@@ -57,7 +57,7 @@ def load(url, type):
         current_sleep = 0
         while name == "":
             current_sleep += 1
-            if current_sleep > 3:
+            if current_sleep > 2:
                 break
             print("nameWhile")
             time.sleep(1)
@@ -112,8 +112,8 @@ def parse(url, pack, reload=0):
     current_sleep = 0
     while len(recommends) == 0:
         current_sleep += 1
-        if current_sleep > 3:
-            if reload > 3:
+        if current_sleep > 2:
+            if reload > 2:
                 break
             driver.close()
             drivers.remove(driver)
@@ -131,8 +131,8 @@ def parse(url, pack, reload=0):
     current_sleep = 0
     while len(sponsored) == 0:
         current_sleep += 1
-        if current_sleep > 3:
-            if reload > 3:
+        if current_sleep > 2:
+            if reload > 2:
                 break
             driver.close()
             drivers.remove(driver)

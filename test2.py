@@ -41,7 +41,7 @@ for i in range(1, 21):
         element = elements[j]
         url = element.find_element_by_xpath("div/div/div[1]/a").get_attribute("href")
         id = get_id(url)
-        if id == "172384276":
+        if id == "172197496":
             flag = True
         if not flag:
             print(id + " skip")
