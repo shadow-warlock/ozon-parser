@@ -96,7 +96,7 @@ def load(url, type):
     return data + "," + type
 
 
-def parse(url, pack):
+def parse(url, pack, reload=0):
     print("---MAIN---")
     driver = webdriver.Firefox(options=options)
     drivers.append(driver)
@@ -113,7 +113,11 @@ def parse(url, pack):
     while len(recommends) == 0:
         current_sleep += 1
         if current_sleep > 3:
-            parse(url, pack)
+            if reload > 3:
+                break
+            driver.close()
+            drivers.remove(driver)
+            parse(url, pack, reload+1)
             return
         time.sleep(1)
         print("recWhile")
@@ -128,7 +132,11 @@ def parse(url, pack):
     while len(sponsored) == 0:
         current_sleep += 1
         if current_sleep > 3:
-            parse(url, pack)
+            if reload > 3:
+                break
+            driver.close()
+            drivers.remove(driver)
+            parse(url, pack, reload+1)
             return
         driver.save_screenshot("sponsored_screen.png")
         print("sponsoredWhile")
