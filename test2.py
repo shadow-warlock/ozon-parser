@@ -9,12 +9,20 @@ from test import parse, get_id
 
 connect = sqlite3.connect("database.sqlite")  # или :memory: чтобы сохранить в RAM
 
-
 options = Options()
 options.headless = True
 
 driver = webdriver.Firefox(options=options)
 flag = False
+
+
+def pre_parse(url, pack):
+    try:
+        parse(url, pack)
+    except:
+        pre_parse(url, pack)
+
+
 for i in range(1, 21):
     if i == 2:
         i = 3
@@ -29,12 +37,14 @@ for i in range(1, 21):
         element = elements[j]
         url = element.find_element_by_xpath("div/div/div[1]/a").get_attribute("href")
         id = get_id(url)
-        if id == "160475853":
+        if id == "156591530":
             flag = True
         if not flag:
             print(id + " skip")
             continue
         print(url)
-        parse(url, "v1")
+        pre_parse(url, "v1")
 
 driver.close()
+
+

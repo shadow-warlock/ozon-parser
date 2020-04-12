@@ -122,10 +122,7 @@ def parse(url, pack):
         driver.save_screenshot("sponsored_screen.png")
         print("sponsoredWhile")
         time.sleep(1)
-        driver.execute_script("window.scrollTo(0, 600);")
-        sponsored = driver.find_element_by_xpath(
-            '/html/body/div[1]/div/div[1]/div[5]/div/div[2]/div/div[3]').find_elements_by_css_selector(
-            "div>div>div>div>div>a")
+        sponsored = driver.find_elements_by_css_selector('[data-widget="skuShelfGoods"][title="Спонсорские товары"] a')
     sponsored_data = []
     for element in sponsored:
         sponsored_temp_data = load(element.get_property("href").split("?")[0], "sponsored")
