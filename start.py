@@ -5,7 +5,7 @@ from pprint import pprint
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
-from test import parse, get_id, drivers
+from main import parse, get_id, drivers
 
 connect = sqlite3.connect("database.sqlite")  # или :memory: чтобы сохранить в RAM
 
@@ -26,6 +26,9 @@ def pre_parse(url, pack):
             drivers.remove(driver)
         pre_parse(url, pack)
 
+# unloaded = [165454370]
+# for i in unloaded:
+#     pre_parse("https://www.ozon.ru/context/detail/id/"+str(i)+"/", "v1")
 
 for i in range(1, 21):
     if i == 2:

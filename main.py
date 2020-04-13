@@ -113,7 +113,7 @@ def parse(url, pack, reload=0):
     while len(recommends) == 0:
         current_sleep += 1
         if current_sleep > 2:
-            if reload > 2:
+            if reload > 1:
                 break
             driver.close()
             drivers.remove(driver)
@@ -132,7 +132,7 @@ def parse(url, pack, reload=0):
     while len(sponsored) == 0:
         current_sleep += 1
         if current_sleep > 2:
-            if reload > 2:
+            if reload > 1:
                 break
             driver.close()
             drivers.remove(driver)
@@ -165,5 +165,6 @@ def parse(url, pack, reload=0):
 
 def get_id(url):
     return list(filter(lambda e: e != '', re.split(r'[\-/]', url)))[-1]
+
 
 # parse("https://www.ozon.ru/context/detail/id/154925584/", "test")
